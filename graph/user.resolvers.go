@@ -7,9 +7,9 @@ package graph
 import (
 	"context"
 	"fmt"
+	"go_test/db_model"
+	"go_test/graph/gql_model"
 	"time"
-	"user/db_model"
-	"user/graph/gql_model"
 )
 
 // 데이터베이스 모델과 GraphQL 모델 간의 변환 함수

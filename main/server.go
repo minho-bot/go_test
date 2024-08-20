@@ -1,10 +1,10 @@
 package main
 
 import (
+	"go_test/db_model"
+	"go_test/graph"
 	"log"
 	"os"
-	"user/db_model"
-	"user/graph"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
