@@ -1,4 +1,4 @@
-package db_model
+package entity
 
 import (
 	"fmt"
@@ -12,8 +12,7 @@ type Post struct {
 	gorm.Model // GORM의 내장 모델을 포함시킵니다.
 	Title      string
 	Content    string
-	AuthorID   uint
-	Author     User // Post는 하나의 User를 가짐 (Many-to-One)
+	Author     string
 }
 
 // 테이블 이름 지정
@@ -29,7 +28,7 @@ func (p *Post) ToGraphQLModel() *gql_model.Post {
 		ID:        fmt.Sprintf("%d", p.ID),
 		Title:     p.Title,
 		Content:   p.Content,
-		Author:    p.Author.ToGraphQLModel(),
+		Author:    p.Author,
 		CreatedAt: &createdAt,
 		UpdatedAt: &updatedAt,
 	}

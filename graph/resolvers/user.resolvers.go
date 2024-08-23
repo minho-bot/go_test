@@ -6,14 +6,16 @@ package resolvers
 
 import (
 	"context"
-	"go_test/db_model"
-	"go_test/graph/generated"
+	"fmt"
 	"go_test/graph/gql_model"
+	"go_test/src/domain/user/entity"
+
+	"github.com/99designs/gqlgen/graphql"
 )
 
 // CreateUser 리졸버
 func (r *mutationResolver) CreateUser(ctx context.Context, name string, email string) (*gql_model.User, error) {
-	newUser := db_model.User{
+	newUser := entity.User{
 		Name:  name,
 		Email: email,
 	}
@@ -27,7 +29,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, name string, email st
 
 // UpdateUser 리졸버
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, name *string, email *string) (*gql_model.User, error) {
-	var user db_model.User
+	var user entity.User
 	if err := r.DB.First(&user, id).Error; err != nil {
 		return nil, err
 	}
@@ -48,7 +50,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, name *stri
 
 // DeleteUser 리졸버
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*gql_model.User, error) {
-	var user db_model.User
+	var user entity.User
 	if err := r.DB.First(&user, id).Error; err != nil {
 		return nil, err
 	}
@@ -62,8 +64,21 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (*gql_mode
 
 // User 리졸버
 func (r *queryResolver) User(ctx context.Context, id string) (*gql_model.User, error) {
-	var user db_model.User
-	if err := r.DB.First(&user, id).Error; err != nil {
+	// 요청된 필드를 수집합니다.
+	preloads := GetPreloads(ctx)
+
+	var user entity.User
+	query := r.DB.Model(&entity.User{})
+
+	// posts 필드가 있는지 확인하고 Preload 설정
+	for _, preload := range preloads {
+		if preload == "posts" {
+			query = query.Preload("Posts")
+		}
+	}
+
+	// 사용자 찾기
+	if err := query.First(&user, id).Error; err != nil {
 		return nil, err
 	}
 
@@ -72,11 +87,28 @@ func (r *queryResolver) User(ctx context.Context, id string) (*gql_model.User, e
 
 // Users 리졸버
 func (r *queryResolver) Users(ctx context.Context) ([]*gql_model.User, error) {
-	var users []db_model.User
-	if err := r.DB.Find(&users).Error; err != nil {
+	// 요청된 필드를 수집합니다.
+	preloads := GetPreloads(ctx)
+
+	var users []*entity.User
+
+	// Preload을 한 번에 설정
+	query := r.DB.Model(&entity.User{})
+	fmt.Print(preloads) // 디버깅을 위해 preloads 출력
+
+	// posts 필드가 있는지 확인
+	for _, preload := range preloads {
+		if preload == "posts" {
+			query = query.Preload("Posts")
+		}
+	}
+
+	// Preload이 필요한 경우만 실행
+	if err := query.Find(&users).Error; err != nil {
 		return nil, err
 	}
 
+	// entity.User를 gql_model.User로 변환
 	var gqlUsers []*gql_model.User
 	for _, user := range users {
 		gqlUsers = append(gqlUsers, user.ToGraphQLModel())
@@ -85,11 +117,26 @@ func (r *queryResolver) Users(ctx context.Context) ([]*gql_model.User, error) {
 	return gqlUsers, nil
 }
 
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+func GetPreloads(ctx context.Context) []string {
+	return GetNestedPreloads(
+		graphql.GetOperationContext(ctx),
+		graphql.CollectFieldsCtx(ctx, nil),
+		"",
+	)
+}
 
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+func GetNestedPreloads(ctx *graphql.OperationContext, fields []graphql.CollectedField, prefix string) (preloads []string) {
+	for _, column := range fields {
+		prefixColumn := GetPreloadString(prefix, column.Name)
+		preloads = append(preloads, prefixColumn)
+		preloads = append(preloads, GetNestedPreloads(ctx, graphql.CollectFields(ctx, column.Selections, nil), prefixColumn)...)
+	}
+	return
+}
 
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
+func GetPreloadString(prefix, name string) string {
+	if len(prefix) > 0 {
+		return prefix + "." + name
+	}
+	return name
+}

@@ -9,7 +9,7 @@ type Post struct {
 	ID        string  `json:"id"`
 	Title     string  `json:"title"`
 	Content   string  `json:"content"`
-	Author    *User   `json:"author"`
+	Author    string  `json:"author"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }

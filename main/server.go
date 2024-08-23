@@ -1,17 +1,20 @@
 package main
 
 import (
-	"go_test/db_model"
 	"go_test/graph/generated"
 	"go_test/graph/resolvers"
+	postEntity "go_test/src/domain/post/entity"
+	userEntity "go_test/src/domain/user/entity"
 	"log"
 	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 const defaultPort = "8080"
@@ -20,8 +23,20 @@ func main() {
 	// 데이터베이스 연결 DSN (Data Source Name)
 	dsn := "user:password@tcp(localhost:3306)/userdb?charset=utf8mb4&parseTime=True&loc=Local"
 
+	// Logger 설정
+	logger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             200 * time.Millisecond,
+		LogLevel:                  logger.Info,
+		IgnoreRecordNotFoundError: false,
+		Colorful:                  true,
+		ParameterizedQueries:      true,
+	})
+
 	// 데이터베이스 연결
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		PrepareStmt: true,
+		Logger:      logger,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -34,7 +49,7 @@ func main() {
 	defer sqlDB.Close() // 데이터베이스 연결 종료 보장
 
 	// 데이터베이스 마이그레이션
-	if err := db.AutoMigrate(&db_model.User{}, &db_model.Post{}); err != nil {
+	if err := db.AutoMigrate(&userEntity.User{}, &postEntity.Post{}); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 

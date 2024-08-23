@@ -6,23 +6,16 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
-	"go_test/db_model"
 	"go_test/graph/gql_model"
-	"strconv"
+	"go_test/src/domain/post/entity"
 )
 
-// CreatePost 리졸버
-func (r *mutationResolver) CreatePost(ctx context.Context, title string, content string, authorID string) (*gql_model.Post, error) {
-	authorIDUint, err := strconv.ParseUint(authorID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid author ID: %v", err)
-	}
-
-	newPost := db_model.Post{
-		Title:    title,
-		Content:  content,
-		AuthorID: uint(authorIDUint),
+// CreatePost is the resolver for the createPost field.
+func (r *mutationResolver) CreatePost(ctx context.Context, title string, content string, author string) (*gql_model.Post, error) {
+	newPost := entity.Post{
+		Title:   title,
+		Author:  author,
+		Content: content,
 	}
 
 	if err := r.DB.Create(&newPost).Error; err != nil {
@@ -32,9 +25,9 @@ func (r *mutationResolver) CreatePost(ctx context.Context, title string, content
 	return newPost.ToGraphQLModel(), nil
 }
 
-// UpdatePost 리졸버
+// UpdatePost is the resolver for the updatePost field.
 func (r *mutationResolver) UpdatePost(ctx context.Context, id string, title *string, content *string) (*gql_model.Post, error) {
-	var post db_model.Post
+	var post entity.Post
 	if err := r.DB.First(&post, id).Error; err != nil {
 		return nil, err
 	}
@@ -53,9 +46,9 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, id string, title *str
 	return post.ToGraphQLModel(), nil
 }
 
-// DeletePost 리졸버
+// DeletePost is the resolver for the deletePost field.
 func (r *mutationResolver) DeletePost(ctx context.Context, id string) (*gql_model.Post, error) {
-	var post db_model.Post
+	var post entity.Post
 	if err := r.DB.First(&post, id).Error; err != nil {
 		return nil, err
 	}
@@ -67,9 +60,9 @@ func (r *mutationResolver) DeletePost(ctx context.Context, id string) (*gql_mode
 	return post.ToGraphQLModel(), nil
 }
 
-// Post 리졸버 (단일 조회)
+// Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*gql_model.Post, error) {
-	var post db_model.Post
+	var post entity.Post
 	if err := r.DB.First(&post, id).Error; err != nil {
 		return nil, err
 	}
@@ -77,9 +70,9 @@ func (r *queryResolver) Post(ctx context.Context, id string) (*gql_model.Post, e
 	return post.ToGraphQLModel(), nil
 }
 
-// Posts 리졸버 (다중 조회)
+// Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*gql_model.Post, error) {
-	var posts []db_model.Post
+	var posts []entity.Post
 	if err := r.DB.Find(&posts).Error; err != nil {
 		return nil, err
 	}
