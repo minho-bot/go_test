@@ -2,7 +2,8 @@ package main
 
 import (
 	"go_test/db_model"
-	"go_test/graph"
+	"go_test/graph/generated"
+	"go_test/graph/resolvers"
 	"log"
 	"os"
 
@@ -33,7 +34,7 @@ func main() {
 	defer sqlDB.Close() // 데이터베이스 연결 종료 보장
 
 	// 데이터베이스 마이그레이션
-	if err := db.AutoMigrate(&db_model.User{}); err != nil {
+	if err := db.AutoMigrate(&db_model.User{}, &db_model.Post{}); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}
 
@@ -46,8 +47,8 @@ func main() {
 	r := gin.Default()
 
 	// GraphQL 서버 핸들러 생성
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
-		Resolvers: &graph.Resolver{
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
+		Resolvers: &resolvers.Resolver{
 			DB: db, // 데이터베이스 연결을 Resolver 구조체에 전달
 		},
 	}))

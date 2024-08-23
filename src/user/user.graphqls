@@ -2,16 +2,17 @@ type User {
   id: ID!
   name: String!
   email: String!
+  posts: [Post!]!
   createdAt: String
   updatedAt: String
 }
 
-type Query {
-  users: [User!]!
+extend type Query {
   user(id: ID!): User
+  users: [User!]
 }
 
-type Mutation {
+extend type Mutation {
   createUser(name: String!, email: String!): User!
   updateUser(id: ID!, name: String, email: String): User!
   deleteUser(id: ID!): User!

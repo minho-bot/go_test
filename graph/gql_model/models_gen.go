@@ -5,6 +5,15 @@ package gql_model
 type Mutation struct {
 }
 
+type Post struct {
+	ID        string  `json:"id"`
+	Title     string  `json:"title"`
+	Content   string  `json:"content"`
+	Author    *User   `json:"author"`
+	CreatedAt *string `json:"createdAt,omitempty"`
+	UpdatedAt *string `json:"updatedAt,omitempty"`
+}
+
 type Query struct {
 }
 
@@ -12,6 +21,7 @@ type User struct {
 	ID        string  `json:"id"`
 	Name      string  `json:"name"`
 	Email     string  `json:"email"`
+	Posts     []*Post `json:"posts"`
 	CreatedAt *string `json:"createdAt,omitempty"`
 	UpdatedAt *string `json:"updatedAt,omitempty"`
 }
