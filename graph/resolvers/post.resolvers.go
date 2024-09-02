@@ -7,80 +7,29 @@ package resolvers
 import (
 	"context"
 	"go_test/graph/gql_model"
-	"go_test/src/domain/post/entity"
 )
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, content string, author string) (*gql_model.Post, error) {
-	newPost := entity.Post{
-		Title:   title,
-		Author:  author,
-		Content: content,
-	}
-
-	if err := r.DB.Create(&newPost).Error; err != nil {
-		return nil, err
-	}
-
-	return newPost.ToGraphQLModel(), nil
+	return r.postResolver.CreatePost(ctx, title, content, author)
 }
 
 // UpdatePost is the resolver for the updatePost field.
 func (r *mutationResolver) UpdatePost(ctx context.Context, id string, title *string, content *string) (*gql_model.Post, error) {
-	var post entity.Post
-	if err := r.DB.First(&post, id).Error; err != nil {
-		return nil, err
-	}
-
-	if title != nil {
-		post.Title = *title
-	}
-	if content != nil {
-		post.Content = *content
-	}
-
-	if err := r.DB.Save(&post).Error; err != nil {
-		return nil, err
-	}
-
-	return post.ToGraphQLModel(), nil
+	return r.postResolver.UpdatePost(ctx, id, title, content)
 }
 
 // DeletePost is the resolver for the deletePost field.
 func (r *mutationResolver) DeletePost(ctx context.Context, id string) (*gql_model.Post, error) {
-	var post entity.Post
-	if err := r.DB.First(&post, id).Error; err != nil {
-		return nil, err
-	}
-
-	if err := r.DB.Delete(&post).Error; err != nil {
-		return nil, err
-	}
-
-	return post.ToGraphQLModel(), nil
+	return r.postResolver.DeletePost(ctx, id)
 }
 
 // Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*gql_model.Post, error) {
-	var post entity.Post
-	if err := r.DB.First(&post, id).Error; err != nil {
-		return nil, err
-	}
-
-	return post.ToGraphQLModel(), nil
+	return r.postResolver.Post(ctx, id)
 }
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*gql_model.Post, error) {
-	var posts []entity.Post
-	if err := r.DB.Find(&posts).Error; err != nil {
-		return nil, err
-	}
-
-	var gqlPosts []*gql_model.Post
-	for _, post := range posts {
-		gqlPosts = append(gqlPosts, post.ToGraphQLModel())
-	}
-
-	return gqlPosts, nil
+	return r.postResolver.Posts(ctx)
 }
