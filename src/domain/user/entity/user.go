@@ -11,9 +11,9 @@ import (
 
 type User struct {
 	gorm.Model // GORM의 내장 모델을 포함시킵니다.
-	Name       string
-	Email      string        `gorm:"type:varchar(100);unique_index"`
-	Posts      []entity.Post `gorm:"foreignKey:Author;references:Name"`
+	Name       string			`gorm:"type:varchar(100);unique"`
+	Email      string			`gorm:"type:varchar(100);unique_index"`
+	Posts      []entity.Post	`gorm:"foreignKey:Author;references:Name"`
 }
 
 // 테이블 이름 지정

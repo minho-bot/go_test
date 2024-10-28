@@ -10,9 +10,9 @@ import (
 
 type Post struct {
 	gorm.Model // GORM의 내장 모델을 포함시킵니다.
-	Title      string
-	Content    string
-	Author     string
+	Title      string	`gorm:"type:varchar(255)"`
+	Content    string	`gorm:"type:text"`
+	Author     string	`gorm:"type:varchar(100)"`
 }
 
 // 테이블 이름 지정
